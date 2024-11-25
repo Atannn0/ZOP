@@ -4,7 +4,7 @@ from scipy.stats import chi2_contingency, ttest_rel, wilcoxon, shapiro, ttest_1s
 import seaborn as sns
 
 # Load the data
-file_path = 'Důvěryhodnost umělé inteligence (Odpovědi)-4.xlsx'
+file_path = 'Důvěryhodnost umělé inteligence (Odpovědi)-4.xlsx'
 data = pd.ExcelFile(file_path)
 responses = data.parse('Odpovědi formuláře 1')
 
@@ -17,7 +17,7 @@ responses.columns = [
     'increase_trust_ai', 'trust_scenario'
 ]
 
-# Popis respondentů
+# Summary of respondents
 respondents_summary = responses[['age', 'gender', 'education', 'technical_skills']].describe(include='all')
 print("### Popis respondentů ###")
 print(respondents_summary)
@@ -45,24 +45,27 @@ secondary_color = "#F7C04A"  # Gold
 neutral_color = "#474747"  # Gray
 
 print("\n### H1: Emoce a demografické faktory ###")
+plot_counter = 1
 for demo_var, label in demographic_vars.items():
     contingency_table = responses.groupby([demo_var, 'ai_emotion_extended']).size().unstack(fill_value=0)
     ax = contingency_table.plot(
         kind='bar', stacked=True, figsize=(12, 6),
         color=[primary_color, secondary_color, neutral_color], alpha=0.8
     )
-    plt.title(f'Distribuce emocí vůči AI podle: "{label}"', fontsize=16)
-    plt.xlabel(label, fontsize=14)
-    plt.ylabel('Počet respondentů', fontsize=14)
-    plt.legend(title='Kategorie emocí', fontsize=12)
-    plt.xticks(rotation=45)
+    plt.title(f'Distribuce emocí vůči AI podle: "{label}"', fontsize=21)
+    plt.xlabel(label, fontsize=18)
+    plt.ylabel('Počet respondentů', fontsize=18)
+    plt.legend(title='Kategorie emocí', fontsize=18)
+    plt.xticks(rotation=0)
     plt.tight_layout()
 
     # Add values above bars
     for container in ax.containers:
         ax.bar_label(container, fmt='%d', label_type='center', fontsize=10, color="white")
 
-    plt.show()
+    filename = f"emocni_distribuce_{plot_counter}_{demo_var}.png"
+    plt.savefig(filename, dpi=1200)
+    plt.show()   
 
     chi2_stat, p_value, _, _ = chi2_contingency(contingency_table)
     print(f'Chi-Square Test for {label}: Chi2-statistic = {chi2_stat:.2e}, p-value = {p_value:.2e}')
@@ -89,15 +92,17 @@ responses['transparency_trust_score'] = responses[
 ].mean(axis=1)
 
 print("\n### H2: Transparentnost a důvěra ###")
-# Vizualizace distribuce dat
+
+# Distribution of trust scores - histogram
 plt.hist(responses['transparency_trust_score'].dropna(), bins=10, color=primary_color, alpha=0.8, edgecolor='white')
-plt.title('Distribuce skóre transparentnosti')
-plt.xlabel('Průměrné skóre transparentnosti (1-5)')
-plt.ylabel('Počet respondentů')
+plt.title('Distribuce skóre transparentnosti', fontsize=21)
+plt.xlabel('Průměrné skóre transparentnosti (1-5)', fontsize=18)
+plt.ylabel('Počet respondentů', fontsize=18)
 plt.tight_layout()
+plt.savefig('H2', dpi=1200)
 plt.show()
 
-# Test normality
+# Test of normality and statistical test
 normality_stat, normality_pval = shapiro(responses['transparency_trust_score'].dropna())
 print(f'Shapiro-Wilk Test: Statistik = {normality_stat:.4e}, p-value = {normality_pval:.2e}')
 
@@ -139,15 +144,7 @@ h3_data = responses[['trust_daily_decisions_numeric', 'trust_health_finance_nume
 daily_mean = h3_data['trust_daily_decisions_numeric'].mean()
 health_finance_mean = h3_data['trust_health_finance_numeric'].mean()
 
-# Vizualizace rozdílů v důvěře
-fig, ax = plt.subplots(figsize=(8, 6))
-bars = ax.bar(
-    ['Každodenní rozhodování', 'Zdraví a finance'], 
-    [daily_mean, health_finance_mean], 
-    color=[primary_color, secondary_color], alpha=0.8, edgecolor='white'
-)
-
-# Vizualizace rozdílů v důvěře
+# Bar plot with mean values
 fig, ax = plt.subplots(figsize=(8, 6))
 bars = ax.bar(
     ['Každodenní rozhodování', 'Zdraví a finance'], 
@@ -164,15 +161,16 @@ for bar, mean_value in zip(bars, [daily_mean, health_finance_mean]):
         ha='center', va='center', fontsize=12, color='white'
     )
 
-plt.title('Průměrná důvěra v AI podle typu rozhodnutí', fontsize=16)
-plt.ylabel('Průměrná důvěra (1-5)', fontsize=14)
+plt.title('Průměrná důvěra v AI podle typu rozhodnutí', fontsize=21)
+plt.ylabel('Průměrná důvěra (1-5)', fontsize=18)
 plt.tight_layout()
+plt.savefig('H3', dpi=1200)
 plt.show()
 
-# Distribuce dat jako hustotní grafy
+# Distribution of trust scores - density plot
 plt.figure(figsize=(10, 6))
 sns.kdeplot(h3_data['trust_daily_decisions_numeric'], fill=True, color="blue", label="Každodenní rozhodování", alpha=0.5)
-sns.kdeplot(h3_data['trust_health_finance_numeric'], fill=True, color="orange", label="Zdraví a finance", alpha=0.5)
+sns.kdeplot(h3_data['trust_health_finance_numeric'], fill=True, color="orange", label="Zásadní rozhodování", alpha=0.5)
 plt.title('Distribuce důvěry v AI podle typu rozhodnutí')
 plt.xlabel('Důvěra (1-5)')
 plt.ylabel('Hustota')
@@ -180,7 +178,7 @@ plt.legend()
 plt.tight_layout()
 plt.show()
 
-# Statistický test
+# Statistical test (Shapiro-Wilk, paired T-test or Wilcoxon)
 daily_normality = shapiro(h3_data['trust_daily_decisions_numeric'])
 finance_normality = shapiro(h3_data['trust_health_finance_numeric'])
 

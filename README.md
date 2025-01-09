@@ -4,7 +4,7 @@
 This project analyzes the trust in artificial intelligence (AI) based on survey responses. The analysis includes statistical tests and visualizations to explore the relationship between demographic factors, emotions, and trust in AI across different decision-making scenarios. The goal is to understand the factors influencing trust in AI and identify key patterns.
 
 ## Files
-- **`trust_analysis.py`**: The main Python script that:
+- **`trust.py`**: The main Python script that:
   - Loads and preprocesses survey data.
   - Conducts statistical tests such as Chi-square, T-tests, and Wilcoxon tests.
   - Generates insightful visualizations like bar charts, histograms, and KDE plots to represent findings.
